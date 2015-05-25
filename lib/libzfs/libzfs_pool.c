@@ -498,10 +498,19 @@ zpool_valid_proplist(libzfs_handle_t *hdl, const char *poolname,
 			}
 
 			(void) nvpair_value_string(elem, &strval);
-			if (strcmp(strval, ZFS_FEATURE_ENABLED) != 0) {
+			if (!flags.create) {
+				if (strcmp(strval, ZFS_FEATURE_ENABLED) != 0) {
+					zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
+					    "property '%s' can only be set to "
+					    "'enabled'"), propname);
+					(void) zfs_error(hdl, EZFS_BADPROP, errbuf);
+					goto error;
+				}
+			} else if (strcmp(strval, ZFS_FEATURE_ACTIVE) == 0) {
 				zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
 				    "property '%s' can only be set to "
-				    "'enabled'"), propname);
+				    "'enabled' or 'disabled' at pool creation"),
+				    propname);
 				(void) zfs_error(hdl, EZFS_BADPROP, errbuf);
 				goto error;
 			}
